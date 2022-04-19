@@ -50,8 +50,10 @@ function reportResult(chat, counter) {
   }
   
   chat.sendMessage(`[L33T Bot]: ${outMsg}`).then(() => {
-    client.destroy();
-    process.exit(0);
+    setTimeout(() => {
+      client.destroy();
+      process.exit(0);
+    }, 5000);
   });
 }
 
