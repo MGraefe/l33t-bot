@@ -1,0 +1,16 @@
+{
+  "name": "l33t-counter",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "Marius Gräfe",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "qrcode": "^1.5.0",
+    "whatsapp-web.js": "^1.16.5"
+  }
+}
