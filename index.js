@@ -1,16 +1,17 @@
-const { Client, LocalAuth } = require('whatsapp-web.js');
+
 const qrcode = require('qrcode');
 const WAWebJS = require('whatsapp-web.js');
 
 const GROUP_ID = process.env.L33TBOT_GROUP_ID;
 const DAY_MS = 1000 * 60 * 60 * 24; // 1 day in milliseconds
 
-const client = new Client({
-  authStrategy: new LocalAuth(),
+const client = new WAWebJS.Client({
+  authStrategy: new WAWebJS.LocalAuth(),
 });
 
 
 let shutdownTimer = null;
+
 client.on('qr', (qr) => {
   const qrFilename = process.env.L33TBOT_QR_FILENAME || 'qr.png';
   qrcode.toFile(qrFilename, qr);
@@ -59,7 +60,7 @@ function reportResult(chat, counter) {
  * @param {WAWebJS.Chat} chat
  * @param {number} maxMsgCount
  */
-function countL33ts(chat, maxMsgCount = 20) {
+function countL33ts(chat, maxMsgCount = 50) {
   chat.fetchMessages({limit: maxMsgCount}).then((messages) => {
     let day = new Date();
     let counter = 0;
@@ -98,7 +99,7 @@ function countL33ts(chat, maxMsgCount = 20) {
 client.on('ready', () => {
   console.log('client is ready!');
   client.getChatById(GROUP_ID).then((chat) => {
-    countL33ts(chat, 50);
+    countL33ts(chat);
   });
 });
 
