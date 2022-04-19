@@ -2,7 +2,7 @@ const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode');
 const WAWebJS = require('whatsapp-web.js');
 
-const GROUP_ID = '491739702199-1416762591@g.us';
+const GROUP_ID = process.env.L33TBOT_GROUP_ID;
 const DAY_MS = 1000 * 60 * 60 * 24; // 1 day in milliseconds
 
 const client = new Client({
