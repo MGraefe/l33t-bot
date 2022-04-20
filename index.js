@@ -14,25 +14,18 @@ const client = new WAWebJS.Client({
 
 let shutdownTimer = null;
 
-client.on('qr', (qr) => {
-  qrcode.toFile(QR_FILENAME, qr);
-  console.log('received QR, please scan!');
 
-  shutdownTimer = setTimeout(() => {
-    console.log('timeout over, shutting down');
-    client.destroy();
-    process.exit(1);
-  }, 1000 * 60 * 5); // 5 minutes
-});
-
-
-client.on('authenticated', () => {
-  console.log('Authenticated!');
-  if (shutdownTimer) {
-    clearTimeout(shutdownTimer);
-    shutdownTimer = null;
-  }
-});
+/**
+ * Quit after a little grace period
+ * @param {number} code exit code
+ */
+function shutdown(code) {
+  client.destroy().then(() => {
+    setTimeout(() => {
+      process.exit(code);
+    }, 1000); // wait a little before finally closing
+  });
+}
 
 
 /**
@@ -52,11 +45,10 @@ function reportResult(chat, counter) {
     outMsg = `RIP STRÄHNE Sadge`;
   }
   
-  chat.sendMessage(`[L33T Bot]: ${outMsg}`).then(() => {
-    setTimeout(() => {
-      client.destroy();
-      process.exit(0);
-    }, 5000);
+  const finalMsg = `[L33T Bot]: ${outMsg}`;
+  console.log('Sending message:', finalMsg);
+  chat.sendMessage(finalMsg).then(() => {
+    setTimeout(() => shutdown(0), 5000);
   });
 }
 
@@ -106,6 +98,26 @@ function countL33ts(chat, maxMsgCount = 50) {
 }
 
 
+client.on('qr', (qr) => {
+  qrcode.toFile(QR_FILENAME, qr);
+  console.log('received QR, please scan!');
+
+  shutdownTimer = setTimeout(() => {
+    console.log('timeout over, shutting down');
+    client.destroy().then(() => shutdown(1));
+  }, 1000 * 60 * 5); // 5 minutes
+});
+
+
+client.on('authenticated', () => {
+  console.log('Authenticated!');
+  if (shutdownTimer) {
+    clearTimeout(shutdownTimer);
+    shutdownTimer = null;
+  }
+});
+
+
 client.on('ready', () => {
   console.log('client is ready!');
   client.getChatById(GROUP_ID).then((chat) => {
@@ -116,12 +128,13 @@ client.on('ready', () => {
 
 client.on('auth_failure', (msg) => {
   console.error('Authentication error!', msg);
-  process.exit(1);
+  shutdown(1);
 });
 
 
 client.on('disconnected', (reason) => {
   console.log('Client was logged out', reason);
+  shutdown(1);
 });
 
 
