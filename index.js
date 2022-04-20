@@ -28,24 +28,50 @@ function shutdown(code) {
 }
 
 
+
+
+
+/**
+ * get message for specific l33t counter
+ * @param {number} counter 
+ */
+function getMessageQuip(counter) {
+  const messageTexts = [
+    [0, `RIP STRÄHNE Sadge`],
+    [1, `...alles fängt mal klein an`],
+    [5, `'er Strähne...weiter so!`],
+    [10, `'er Strähne...nice!`],
+    [15, `'er Strähne...hype!`],
+    [25, `'er Strähne! MEGAHYPE!`],
+    [40, `'er Strähne...POGGERS!`],
+    [50, `'er Strähne...MEGA POGGERS!`],
+  ];
+  
+  const specialTexts = new Map([
+    [10, `'er Strähne...so viel wie 10 Jähriger!`],
+    [18, `'er Strähne...darauf erstmal nen Schnaps`],
+    [30, `'er Strähne...endlich 30!`],
+    [40, `'er Strähne! Fast so gut wie A von Stairs halten`],
+    [50, `'er Strähne...Mohrenkopfbrötchen? FUFFZISCH`],
+  ]);
+
+  if (specialTexts.has(counter)) {
+    return specialTexts.get(counter);
+  }
+
+  return messageTexts
+    .sort((l, r) => r[0] - l[0]) // sort descending, so it's easier to iterate
+    .find(([upTo]) => counter >= upTo)[1] || 'I bims kabott';
+}
+
+
 /**
  * @param {WAWebJS.Chat} chat 
  * @param {number} counter
  */
 function reportResult(chat, counter) {
   console.log('L33t count:', counter);
-  let outMsg;
-  if (counter > 1) {
-    outMsg = `${counter}'er Strähne!`;
-  } else if (counter === 1) {
-    outMsg = `${counter}...alles fängt mal klein an`;
-  } else if (counter === 2) {
-    outMsg = `${counter}...weiter so!`;
-  } else {
-    outMsg = `RIP STRÄHNE Sadge`;
-  }
-  
-  const finalMsg = `[L33T Bot]: ${outMsg}`;
+  const finalMsg = `[L33T Bot]: ${counter}${getMessageQuip(counter)}`;
   console.log('Sending message:', finalMsg);
   chat.sendMessage(finalMsg).then(() => {
     setTimeout(() => shutdown(0), 5000);
@@ -139,3 +165,8 @@ client.on('disconnected', (reason) => {
 
 
 client.initialize();
+
+// test message quips
+// for (let i = 0; i < 60; ++i) {
+//   console.log(i, getMessageQuip(i));
+// }
