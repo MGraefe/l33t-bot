@@ -9,10 +9,45 @@ const DAY_MS = 1000 * 60 * 60 * 24; // 1 day in milliseconds
 
 const client = new WAWebJS.Client({
   authStrategy: new WAWebJS.LocalAuth(),
+  // puppeteer: {headless: false},
+  // userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 12_3_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36',
 });
 
-
 let shutdownTimer = null;
+
+class StreakCounter
+{
+  constructor(authorId = null) {
+    this.authorId = authorId;
+    this.count = 0;
+    this.ended = false;
+    this.l33ted = false;
+  }
+
+  countL33t() {
+    if (!this.ended && !this.l33ted) {
+      this.count += 1;
+      this.l33ted = true;
+    }
+  }
+
+  end() {
+    this.ended = true;
+  }
+
+  wrapNextDay() {
+    if (!this.l33ted) {
+      this.ended = true;
+    }
+    this.l33ted = false;
+  }
+
+  async resolveAuthorName() {
+    const contact = await client.getContactById(this.authorId);
+    this.authorName = contact.shortName || contact.name || contact.pushname;
+    return this.authorName;
+  }
+}
 
 
 /**
@@ -26,9 +61,6 @@ function shutdown(code) {
     }, 1000); // wait a little before finally closing
   });
 }
-
-
-
 
 
 /**
@@ -55,27 +87,37 @@ function getMessageQuip(counter) {
     [50, `'er Strähne...Mohrenkopfbrötchen? FUFFZISCH`],
   ]);
 
+  let quip;
   if (specialTexts.has(counter)) {
-    return specialTexts.get(counter);
+    quip = specialTexts.get(counter);
+  } else {
+    quip = messageTexts
+      .sort((l, r) => r[0] - l[0]) // sort descending, so it's easier to iterate
+      .find(([upTo]) => counter >= upTo)[1] || 'I bims kabott';
   }
 
-  return messageTexts
-    .sort((l, r) => r[0] - l[0]) // sort descending, so it's easier to iterate
-    .find(([upTo]) => counter >= upTo)[1] || 'I bims kabott';
+  return `${counter}${quip}`;
 }
 
 
 /**
  * @param {WAWebJS.Chat} chat 
- * @param {number} counter
+ * @param {StreakCounter} globalCounter
+ * @param {StreakCounter[]} personalCounters
  */
-function reportResult(chat, counter) {
-  console.log('L33t count:', counter);
-  const finalMsg = `[L33T Bot]: ${counter}${getMessageQuip(counter)}`;
-  console.log('Sending message:', finalMsg);
-  chat.sendMessage(finalMsg).then(() => {
-    setTimeout(() => shutdown(0), 5000);
-  });
+function reportResult(chat, globalCounter, personalCounters) {
+  console.log('L33t count:', globalCounter.count);
+  Promise.all(personalCounters.map(c => c.resolveAuthorName()))
+    .then(() => {
+      const personalMsgs = personalCounters.map(c => `${c.authorName}: ${getMessageQuip(c.count)}`);
+      const finalMsg = `*[L33T Bot]: ${getMessageQuip(globalCounter.count)}*\n`
+        + `---------------------------\n`
+        + `${personalMsgs.join('\n')}`;
+      console.log('Sending message:', finalMsg);
+      chat.sendMessage(finalMsg).then(() => {
+        setTimeout(() => shutdown(0), 5000);
+      });
+    });
 }
 
 
@@ -83,44 +125,47 @@ function reportResult(chat, counter) {
  * @param {WAWebJS.Chat} chat
  * @param {number} maxMsgCount
  */
-function countL33ts(chat, maxMsgCount = 50) {
-  chat.fetchMessages({limit: maxMsgCount}).then((messages) => {
-    let day = new Date();
-    let counter = 0;
-    let l33tForDay = false;
-    for (let msg of messages.reverse()) {
-      const msgTime = new Date(msg.timestamp * 1000);
+async function countL33ts(chat, maxMsgCount = 500) {
+  let day = new Date();
+  const globalCounter = new StreakCounter();
+  /** @type {Map<string, StreakCounter>} */
+  const personalCounters = new Map(chat.participants.map(({id}) => [id._serialized, new StreakCounter(id._serialized)]));
 
-      // is this message already on the next day?
-      if ((day - msgTime) > DAY_MS) {
-        if (!l33tForDay) { // no leet for whole day? :(
-          reportResult(chat, counter);
-          return;
-        }
+  //client.getContactById(messages[0].author).then(contact => console.log(contact));
+  const messages = await chat.fetchMessages({limit: maxMsgCount});
+  for (let msg of messages.reverse()) {
+    const msgTime = new Date(msg.timestamp * 1000);
 
-        // roll over to next day
-        day -= DAY_MS;
-        l33tForDay = false;
+    // is this message already on the next day?
+    if ((day - msgTime) > DAY_MS) {
+      if (!globalCounter.l33ted) { // no leet for whole day? :(
+        reportResult(chat, globalCounter, [...personalCounters.values()].filter(p => p.count > 0));
+        return;
       }
-      
-      // check for l33t messages if we haven't found one already,
-      // otherwise just ignore the messages
-      if (
-        !l33tForDay &&
-        msgTime.getHours() === 13 &&
-        msgTime.getMinutes() === 37 &&
-        msg.body.toLowerCase().includes('l33t')
-      ) {
-          // l33t found!
-          counter += 1;
-          l33tForDay = true;
-      }
+
+      // roll over to next day
+      day -= DAY_MS;
+      globalCounter.wrapNextDay();
+      personalCounters.forEach(c => c.wrapNextDay());
     }
 
-    const nextMsgCount = Math.round(maxMsgCount * 1.5);
-    console.log('not enough messages, trying again with ', nextMsgCount);
-    countL33ts(chat, nextMsgCount);
-  });
+    if (
+      msgTime.getHours() === 13 &&
+      msgTime.getMinutes() === 37 &&
+      msg.body.toLowerCase().includes('l33t')
+    ) {
+        globalCounter.countL33t();
+        const {author} = msg;
+        let personal = personalCounters.get(author);
+        if (personal) {
+          personal.countL33t()
+        }
+    }
+  }
+
+  const nextMsgCount = Math.round(maxMsgCount * 1.5);
+  console.log('not enough messages, trying again with ', nextMsgCount);
+  countL33ts(chat, nextMsgCount);
 }
 
 
@@ -148,6 +193,7 @@ client.on('ready', () => {
   console.log('client is ready!');
   client.getChatById(GROUP_ID).then((chat) => {
     countL33ts(chat);
+    // console.log(chat.participants);
   });
 });
 
