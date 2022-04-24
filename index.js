@@ -128,9 +128,9 @@ function reportResult(chat, globalCounter, personalCounters) {
         + `------------------------------------------\n`
         + `${personalMsgs.join('\n')}`;
       console.log('Sending message:', finalMsg);
-      //chat.sendMessage(finalMsg).then(() => {
+      chat.sendMessage(finalMsg).then(() => {
         setTimeout(() => shutdown(0), 5000);
-      //});
+      });
     });
 }
 
@@ -145,7 +145,6 @@ async function countL33ts(chat, maxMsgCount = 500) {
   /** @type {Map<string, StreakCounter>} */
   const personalCounters = new Map(chat.participants.map(({id}) => [id._serialized, new StreakCounter(id._serialized)]));
 
-  //client.getContactById(messages[0].author).then(contact => console.log(contact));
   const messages = await chat.fetchMessages({limit: maxMsgCount});
   for (let msg of messages.reverse()) {
     const msgTime = new Date(msg.timestamp * 1000);
@@ -168,12 +167,12 @@ async function countL33ts(chat, maxMsgCount = 500) {
       msgTime.getMinutes() === 37 &&
       msg.body.toLowerCase().includes('l33t')
     ) {
-        globalCounter.countL33t();
-        const {author} = msg;
-        let personal = personalCounters.get(author);
-        if (personal) {
-          personal.countL33t()
-        }
+      globalCounter.countL33t();
+      const {author} = msg;
+      let personal = personalCounters.get(author);
+      if (personal) {
+        personal.countL33t()
+      }
     }
   }
 
@@ -189,7 +188,7 @@ client.on('qr', (qr) => {
 
   shutdownTimer = setTimeout(() => {
     console.log('timeout over, shutting down');
-    client.destroy().then(() => shutdown(1));
+    shutdown(1);
   }, 1000 * 60 * 5); // 5 minutes
 });
 
@@ -207,7 +206,6 @@ client.on('ready', () => {
   console.log('client is ready!');
   client.getChatById(GROUP_ID).then((chat) => {
     countL33ts(chat);
-    // console.log(chat.participants);
   });
 });
 
@@ -225,8 +223,3 @@ client.on('disconnected', (reason) => {
 
 
 client.initialize();
-
-// test message quips
-// for (let i = 0; i < 60; ++i) {
-//   console.log(i, getMessageQuip(i));
-// }
