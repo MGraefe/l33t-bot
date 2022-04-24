@@ -20,13 +20,17 @@ class StreakCounter
   constructor(authorId = null) {
     this.authorId = authorId;
     this.streak = 0;
+    this.count = 0;
     this.ended = false;
     this.l33ted = false;
   }
 
   countL33t() {
-    if (!this.ended && !this.l33ted) {
-      this.streak += 1;
+    if (!this.l33ted) {
+      if (!this.ended) {
+        this.streak += 1;
+      }
+      this.count += 1;
       this.l33ted = true;
     }
   }
@@ -42,10 +46,20 @@ class StreakCounter
     this.l33ted = false;
   }
 
+  isRelevant() {
+    return this.count > 0;
+  }
+
+  async getMessage() {
+    const authorName = await this.resolveAuthorName();
+    return `*${authorName}*: Beitrag: ${this.count}, Pers. Strähne: ${this.streak}`;
+  }
+
   async resolveAuthorName() {
     const contact = await client.getContactById(this.authorId);
     this.authorName = contact.shortName || contact.name || contact.pushname;
-    return this.authorName;
+    // My own name doesn't have a short name for some reason, still try to parse only first name
+    return this.authorName.split(' ')[0];
   }
 }
 
@@ -107,16 +121,16 @@ function getMessageQuip(counter) {
  */
 function reportResult(chat, globalCounter, personalCounters) {
   console.log('L33t count:', globalCounter.streak);
-  Promise.all(personalCounters.map(c => c.resolveAuthorName()))
-    .then(() => {
-      const personalMsgs = personalCounters.map(c => `${c.authorName}: ${getMessageQuip(c.streak)}`);
+  Promise.all(personalCounters.map(c => c.getMessage()))
+    .then(personalMsgs => personalMsgs.sort((l, r) => l.localeCompare(r)))
+    .then((personalMsgs) => {
       const finalMsg = `*[L33T Bot]: ${getMessageQuip(globalCounter.streak)}*\n`
-        + `---------------------------\n`
+        + `------------------------------------------\n`
         + `${personalMsgs.join('\n')}`;
       console.log('Sending message:', finalMsg);
-      chat.sendMessage(finalMsg).then(() => {
+      //chat.sendMessage(finalMsg).then(() => {
         setTimeout(() => shutdown(0), 5000);
-      });
+      //});
     });
 }
 
@@ -139,7 +153,7 @@ async function countL33ts(chat, maxMsgCount = 500) {
     // is this message already on the next day?
     if ((day - msgTime) > DAY_MS) {
       if (!globalCounter.l33ted) { // no leet for whole day? :(
-        reportResult(chat, globalCounter, [...personalCounters.values()].filter(p => p.streak > 0));
+        reportResult(chat, globalCounter, [...personalCounters.values()].filter(p => p.isRelevant()));
         return;
       }
 
