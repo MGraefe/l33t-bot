@@ -1,6 +1,7 @@
 
 const qrcode = require('qrcode');
 const WAWebJS = require('whatsapp-web.js');
+const fetch = require('node-fetch');
 
 const GROUP_ID = process.env.L33TBOT_GROUP_ID;
 const QR_FILENAME = process.env.L33TBOT_QR_FILENAME || 'qr.png';
@@ -57,7 +58,7 @@ class StreakCounter
 
   async resolveAuthorName() {
     const contact = await client.getContactById(this.authorId);
-    this.authorName = contact.shortName || contact.name || contact.pushname;
+    this.authorName = contact.shortName || contact.name || contact.pushname || 'Unbekannt';
     // My own name doesn't have a short name for some reason, still try to parse only first name
     return this.authorName.split(' ')[0];
   }
@@ -119,19 +120,27 @@ function getMessageQuip(counter) {
  * @param {StreakCounter} globalCounter
  * @param {StreakCounter[]} personalCounters
  */
-function reportResult(chat, globalCounter, personalCounters) {
+async function reportResult(chat, globalCounter, personalCounters) {
   console.log('L33t count:', globalCounter.streak);
-  Promise.all(personalCounters.map(c => c.getMessage()))
-    .then(personalMsgs => personalMsgs.sort((l, r) => l.localeCompare(r)))
-    .then((personalMsgs) => {
-      const finalMsg = `*[L33T Bot]: ${getMessageQuip(globalCounter.streak)}*\n`
-        + `------------------------------------------\n`
-        + `${personalMsgs.join('\n')}`;
-      console.log('Sending message:', finalMsg);
-      chat.sendMessage(finalMsg).then(() => {
-        setTimeout(() => shutdown(0), 5000);
-      });
-    });
+  const personalMsgs = await Promise.all(personalCounters.map(c => c.getMessage()));
+  personalMsgs.sort((l, r) => l.localeCompare(r));
+  let finalMsg = `*[L33T Bot]: ${getMessageQuip(globalCounter.streak)}*\n`
+    + `------------------------------------------\n`
+    + `${personalMsgs.join('\n')}`;
+
+  try {
+    const factOfDay = await fetch('https://uselessfacts.jsph.pl/random.json?language=de')
+      .then(r => r.json())
+      .then(j => j.text);
+    finalMsg += `\n------------------------------------------\nFakt des Tages: ${factOfDay}`;
+  } catch (e) {
+    console.log(e);
+  }
+
+  console.log('Sending message:', finalMsg);
+  chat.sendMessage(finalMsg).then(() => {
+    setTimeout(() => shutdown(0), 5000);
+  });
 }
 
 
