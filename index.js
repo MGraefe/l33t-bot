@@ -177,10 +177,13 @@ async function countL33ts(chat, maxMsgCount = 500) {
       msg.body.toLowerCase().includes('l33t')
     ) {
       globalCounter.countL33t();
-      const {author} = msg;
+      // if author is undefined it's ourselves
+      let {author = client.info.wid._serialized} = msg;
       let personal = personalCounters.get(author);
       if (personal) {
-        personal.countL33t()
+        personal.countL33t();
+      } else {
+        console.error('no personal counter for author', author);
       }
     }
   }
