@@ -16,6 +16,15 @@ const client = new WAWebJS.Client({
 
 let shutdownTimer = null;
 
+
+async function getAuthorName(authorId) {
+  const contact = await client.getContactById(authorId);
+  this.authorName = contact.shortName || contact.name || contact.pushname || 'Unbekannt';
+  // My own name doesn't have a short name for some reason, still try to parse only first name
+  return this.authorName.split(' ')[0];
+}
+
+
 class StreakCounter
 {
   constructor(authorId = null) {
@@ -57,10 +66,7 @@ class StreakCounter
   }
 
   async resolveAuthorName() {
-    const contact = await client.getContactById(this.authorId);
-    this.authorName = contact.shortName || contact.name || contact.pushname || 'Unbekannt';
-    // My own name doesn't have a short name for some reason, still try to parse only first name
-    return this.authorName.split(' ')[0];
+    return getAuthorName(this.authorId);
   }
 }
 
@@ -122,12 +128,15 @@ function getMessageQuip(counter) {
  */
 async function reportResult(chat, globalCounter, personalCounters) {
   console.log('L33t count:', globalCounter.streak);
-  const personalMsgs = await Promise.all(personalCounters.map(c => c.getMessage()));
+  const personalMsgs = await Promise.all(personalCounters
+    .filter(p => p.isRelevant())
+    .map(c => c.getMessage()));
   personalMsgs.sort((l, r) => l.localeCompare(r));
   let finalMsg = `*[L33T Bot]: ${getMessageQuip(globalCounter.streak)}*\n`
     + `------------------------------------------\n`
     + `${personalMsgs.join('\n')}`;
 
+  // resolve random fact of the day
   try {
     const factOfDay = await fetch('https://uselessfacts.jsph.pl/random.json?language=de')
       .then(r => r.json())
@@ -137,10 +146,21 @@ async function reportResult(chat, globalCounter, personalCounters) {
     console.log(e);
   }
 
+  // check sob of the day (everyone who didn't l33t is a candidate)
+  const sobs = personalCounters.filter(p => !p.isRelevant());
+  finalMsg += `\n------------------------------------------\nNicht-l33tender Hurensohn des Tages: `;
+  if (sobs.length > 0) {
+    const sob = sobs[Math.floor(Math.random() * sobs.length)];
+    const sobName = await sob.resolveAuthorName();
+    finalMsg += sobName;
+  } else {
+    finalMsg += 'Niemand!';
+  }
+
   console.log('Sending message:', finalMsg);
-  chat.sendMessage(finalMsg).then(() => {
+  // chat.sendMessage(finalMsg).then(() => {
     setTimeout(() => shutdown(0), 5000);
-  });
+  // });
 }
 
 
@@ -161,7 +181,7 @@ async function countL33ts(chat, maxMsgCount = 500) {
     // is this message already on the next day?
     if ((day - msgTime) > DAY_MS) {
       if (!globalCounter.l33ted) { // no leet for whole day? :(
-        reportResult(chat, globalCounter, [...personalCounters.values()].filter(p => p.isRelevant()));
+        reportResult(chat, globalCounter, [...personalCounters.values()]);
         return;
       }
 
