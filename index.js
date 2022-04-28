@@ -158,9 +158,9 @@ async function reportResult(chat, globalCounter, personalCounters) {
   }
 
   console.log('Sending message:', finalMsg);
-  // chat.sendMessage(finalMsg).then(() => {
+  chat.sendMessage(finalMsg).then(() => {
     setTimeout(() => shutdown(0), 5000);
-  // });
+  });
 }
 
 
