@@ -146,8 +146,8 @@ async function reportResult(chat, globalCounter, personalCounters) {
     console.log(e);
   }
 
-  // check sob of the day (everyone who didn't l33t is a candidate)
-  const sobs = personalCounters.filter(p => !p.isRelevant());
+  // check sob of the day (everyone who didn't l33t today is a candidate)
+  const sobs = personalCounters.filter(p => p.streak === 0);
   finalMsg += `\n------------------------------------------\nNicht-l33tender Hurensohn des Tages: `;
   if (sobs.length > 0) {
     const sob = sobs[Math.floor(Math.random() * sobs.length)];
