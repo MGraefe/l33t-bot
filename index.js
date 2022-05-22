@@ -83,7 +83,7 @@ function shutdown(code) {
  */
 function getMessageQuip(counter) {
   const messageTexts = [
-    [0, `RIP STRÄHNE Sadge`],
+    [0, `, RIP STRÄHNE Sadge`],
     [1, `...alles fängt mal klein an`],
     [5, `'er Strähne...weiter so!`],
     [10, `'er Strähne...nice!`],
