@@ -194,7 +194,7 @@ async function countL33ts(chat, maxMsgCount = 500) {
     if (
       msgTime.getHours() === 13 &&
       msgTime.getMinutes() === 37 &&
-      msg.body.toLowerCase().includes('l33t')
+      msg.body.match(/[1l][3e]{2,}[7t]/i)
     ) {
       globalCounter.countL33t();
       // if author is undefined it's ourselves
