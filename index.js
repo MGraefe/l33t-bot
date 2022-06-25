@@ -1,7 +1,7 @@
 
 const qrcode = require('qrcode');
 const WAWebJS = require('whatsapp-web.js');
-const fetch = require('node-fetch');
+const fs = require('fs');
 
 const GROUP_ID = process.env.L33TBOT_GROUP_ID;
 const QR_FILENAME = process.env.L33TBOT_QR_FILENAME || 'qr.png';
@@ -138,9 +138,9 @@ async function reportResult(chat, globalCounter, personalCounters) {
 
   // resolve random fact of the day
   try {
-    const factOfDay = await fetch('https://uselessfacts.jsph.pl/random.json?language=de')
-      .then(r => r.json())
-      .then(j => j.text);
+    const daysSinceStart = Math.floor((Date.now() - Date.parse("2022-06-25")) / (1000 * 60 * 60 * 24));
+    const facts = JSON.parse(fs.readFileSync('facts.json', 'utf-8'));
+    const factOfDay = facts[daysSinceStart % facts.length];
     finalMsg += `\n------------------------------------------\nFakt des Tages: ${factOfDay}`;
   } catch (e) {
     console.log(e);
