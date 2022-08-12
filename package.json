@@ -10,10 +10,10 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
-    "qrcode": "^1.5.0",
-    "whatsapp-web.js": "^1.16.5"
+    "qrcode": "^1.5.1",
+    "whatsapp-web.js": "^1.17.1"
   },
   "devDependencies": {
-    "eslint": "^8.13.0"
+    "eslint": "^8.21.0"
   }
 }
