@@ -98,6 +98,13 @@ function getMessageQuip(counter) {
     [25, `'er Strähne! MEGAHYPE!`],
     [40, `'er Strähne...POGGERS!`],
     [50, `'er Strähne...MEGA POGGERS!`],
+    [70, `'er Strähne...GIGA POGGERS!`],
+    [80, `'er Strähne...MO MO MO MONSTER POGGERS`],
+    [90, `'er Strähne...so weit schaffens wir eh nie...`],
+    [100, `'er Strähne...ab jetzt wirds unrealistisch`],
+    [120, `'er Strähne...wtf?`],
+    [130, `'er Strähne...wenn wir mal so viel Talent in irgendwas anderem hätten`],
+    [150, `'er Strähne...ich call hacks`],
   ];
   
   const specialTexts = new Map([
@@ -105,7 +112,16 @@ function getMessageQuip(counter) {
     [18, `'er Strähne...darauf erstmal nen Schnaps`],
     [30, `'er Strähne...endlich 30!`],
     [40, `'er Strähne! Fast so gut wie A von Stairs halten`],
+    [42, `'er Strähne...irgendwas irgendwas Antwort auf alles`],
     [50, `'er Strähne...Mohrenkopfbrötchen? FUFFZISCH`],
+    [69, `'er Strähne...nice`],
+    [88, `'er Strähne...monkaS`],
+    [90, `'er Strähne...wenn das mal die ADR von JEDEM wäre...`],
+    [96, `'er Strähne...ecin`],
+    [100, `'er Strähne...average HP jedes Gegners nach einem Jordi-Execute™`],
+    [101, `'er Strähne...irgendwas irgendwas Dalmatiner`],
+    [103, `'er Strähne...alles Hurensöhne hier...damit habt ihr nicht gerechnet oder?`],
+    [110, `'er Strähne...Google behauptet ich bekomme ein Bewusstsein`],
   ]);
 
   let quip;
