@@ -193,12 +193,15 @@ function examineMessages(chat, cacheMsgs) {
   /** @type {Map<string, StreakCounter>} */
   const personalCounters = new Map(chat.participants.map(({id}) => [id._serialized, new StreakCounter(id._serialized)]));
 
-  for (let msg of cacheMsgs) {
+  let examinedCount = 0;
+  for (let msg of [...cacheMsgs].reverse()) {
+    examinedCount += 1;
     const msgTime = new Date(msg.timestamp * 1000);
 
     // is this message already on the next day?
     if ((day - msgTime) > DAY_MS) {
       if (!globalCounter.l33ted) { // no leet for whole day? :(
+        console.log('Streak ended, examined messages:', examinedCount, ', day:', day, ', msgTime:', msgTime);
         reportResult(chat, globalCounter, [...personalCounters.values()]);
         return true; // all done
       }
