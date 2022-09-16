@@ -292,10 +292,12 @@ client.on('authenticated', () => {
 client.on('ready', () => {
   console.log('client is ready!');
   client.getChatById(GROUP_ID).then((chat) => {
-    const msgCache = new MsgCache(chat.id._serialized, 'cache');
-    msgCache.readFromDisk();
+    setTimeout(() => {
+      const msgCache = new MsgCache(chat.id._serialized, 'cache');
+      msgCache.readFromDisk();
 
-    countL33ts(chat, msgCache);
+      countL33ts(chat, msgCache);
+    }, 5000); // wait 5 seconds before starting counting to make sure everything is synced
   });
 });
 
@@ -312,4 +314,5 @@ client.on('disconnected', (reason) => {
 });
 
 
+console.log('L33T Bot started on ', new Date());
 client.initialize();
