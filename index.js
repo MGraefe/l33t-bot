@@ -175,9 +175,16 @@ async function reportResult(chat, globalCounter, personalCounters) {
   }
 
   console.log('Sending message:', finalMsg);
-  // chat.sendMessage(finalMsg).then(() => {
+  const shutdownAfterWait = () => {
     setTimeout(() => shutdown(0), 5000);
-  // });
+  };
+
+  // magic environment variable to suppress sendMessage call
+  if (!process.env.L33T_DEBUG) {
+    chat.sendMessage(finalMsg).then(shutdownAfterWait);
+  } else {
+    shutdownAfterWait();
+  }
 }
 
 
