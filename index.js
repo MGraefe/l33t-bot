@@ -201,7 +201,7 @@ function examineMessages(chat, cacheMsgs) {
     // is this message already on the next day?
     if ((day - msgTime) > DAY_MS) {
       if (!globalCounter.l33ted) { // no leet for whole day? :(
-        console.log('Streak ended, examined messages:', examinedCount, ', day:', day, ', msgTime:', msgTime);
+        console.log('Streak counted, examined messages:', examinedCount, ', day:', day, ', msgTime:', msgTime);
         reportResult(chat, globalCounter, [...personalCounters.values()]);
         return true; // all done
       }
