@@ -78,8 +78,8 @@ class MsgCache {
       fs.mkdirSync(this.storageDir);
     }
     const jsonText = JSON.stringify(this.buffer, null, 2);
-    fs.writeFileSync(this.storageDir, jsonText, 'utf-8');
-    console.log(`stored cache in ${this.storageDir}`);
+    fs.writeFileSync(this.filePath, jsonText, 'utf-8');
+    console.log(`stored cache in ${this.filePath}`);
   }
 
 
