@@ -44,23 +44,23 @@ class MsgCache {
    */
 
   /**
-   * @param {import('whatsapp-web.js').Message[]} msgs Messages sorted from new to old
+   * @param {import('whatsapp-web.js').Message[]} msgs Messages sorted from old to new
    * @returns {CacheMessage[] | null} New list of messages in the cache, or null if the newest
    * message id in the cache isn't part of msgs, in which case more messages need to be requested.
    */
   appendMessages(msgs) {
     const msgsToAdd = []; // new messages, sorted from new to old
     const newestBufferedId = this.buffer.messages[this.buffer.messages.length - 1]?.id;
-    for (const msg of msgs) {
+    for (const msg of msgs.reverse()) {
       const {id, author, timestamp, body} = msg;
-      if (id.id == newestBufferedId) {
+      if (id.id === newestBufferedId) {
         console.log('found newest id in buffer');
         break;
       }
       msgsToAdd.push({id: id.id, author, timestamp, body});
     }
 
-    if (newestBufferedId && msgsToAdd.length == msgs.length) {
+    if (newestBufferedId && msgsToAdd.length === msgs.length) {
       console.log('MessageCache needs more messages!');
       return null;
     }

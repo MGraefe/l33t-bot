@@ -235,7 +235,7 @@ function examineMessages(chat, cacheMsgs) {
  * @param {MsgCache} msgCache
  * @param {number} maxMsgCount
  */
-async function countL33ts(chat, msgCache, maxMsgCount = 3000) {
+async function countL33ts(chat, msgCache, maxMsgCount = 500) {
   if (maxMsgCount > (1000 * 100))
     throw Error("Exceeded maximum limit of requestable messages");
 
@@ -251,6 +251,7 @@ async function countL33ts(chat, msgCache, maxMsgCount = 3000) {
     const nextMsgCount = Math.round(maxMsgCount * 1.5);
     console.log('not enough messages to connect to cache, trying again with ', nextMsgCount);
     countL33ts(chat, msgCache, nextMsgCount);
+    return;
   }
 
   if (examineMessages(chat, cacheMsgs)) {
