@@ -1,4 +1,5 @@
 
+const MsgCache = require('./MsgCache.js');
 const qrcode = require('qrcode');
 const WAWebJS = require('whatsapp-web.js');
 const fs = require('fs');
@@ -174,31 +175,42 @@ async function reportResult(chat, globalCounter, personalCounters) {
   }
 
   console.log('Sending message:', finalMsg);
-  chat.sendMessage(finalMsg).then(() => {
+  const shutdownAfterWait = () => {
     setTimeout(() => shutdown(0), 5000);
-  });
+  };
+
+  // magic environment variable to suppress sendMessage call
+  if (!process.env.L33T_DEBUG) {
+    chat.sendMessage(finalMsg).then(shutdownAfterWait);
+  } else {
+    shutdownAfterWait();
+  }
 }
 
 
 /**
+ * Look through cached messages and examine leet streak
  * @param {WAWebJS.Chat} chat
- * @param {number} maxMsgCount
+ * @param {CacheMessage} cacheMsgs 
+ * @returns 
  */
-async function countL33ts(chat, maxMsgCount = 500) {
+function examineMessages(chat, cacheMsgs) {
   let day = new Date();
   const globalCounter = new StreakCounter();
   /** @type {Map<string, StreakCounter>} */
   const personalCounters = new Map(chat.participants.map(({id}) => [id._serialized, new StreakCounter(id._serialized)]));
 
-  const messages = await chat.fetchMessages({limit: maxMsgCount});
-  for (let msg of messages.reverse()) {
+  let examinedCount = 0;
+  for (let msg of [...cacheMsgs].reverse()) {
+    examinedCount += 1;
     const msgTime = new Date(msg.timestamp * 1000);
 
     // is this message already on the next day?
     if ((day - msgTime) > DAY_MS) {
       if (!globalCounter.l33ted) { // no leet for whole day? :(
+        console.log('Streak counted, examined messages:', examinedCount, ', day:', day, ', msgTime:', msgTime);
         reportResult(chat, globalCounter, [...personalCounters.values()]);
-        return;
+        return true; // all done
       }
 
       // roll over to next day
@@ -224,9 +236,43 @@ async function countL33ts(chat, maxMsgCount = 500) {
     }
   }
 
-  const nextMsgCount = Math.round(maxMsgCount * 1.5);
-  console.log('not enough messages, trying again with ', nextMsgCount);
-  countL33ts(chat, nextMsgCount);
+  return false; // not enough messages
+}
+
+
+/**
+ * @param {WAWebJS.Chat} chat
+ * @param {MsgCache} msgCache
+ * @param {number} maxMsgCount
+ */
+async function countL33ts(chat, msgCache, maxMsgCount = 500) {
+  if (maxMsgCount > (1000 * 100))
+    throw Error("Exceeded maximum limit of requestable messages");
+
+  // get messages from WhatsApp Web
+  const messages = await chat.fetchMessages({limit: maxMsgCount});
+  if (messages.length < maxMsgCount) {
+    throw new Error("Unable to get requested amount of messages");
+  }
+
+  const cacheMsgs = msgCache.appendMessages(messages);
+  if (!cacheMsgs) {
+    // not enough messages to connect to the newest message in cache, request more!
+    const nextMsgCount = Math.round(maxMsgCount * 1.5);
+    console.log('not enough messages to connect to cache, trying again with ', nextMsgCount);
+    countL33ts(chat, msgCache, nextMsgCount);
+    return;
+  }
+
+  if (examineMessages(chat, cacheMsgs)) {
+    msgCache.writeToDisk();
+  } else {
+    // don't have enough messages?
+    const nextMsgCount = Math.round(maxMsgCount * 1.5);
+    console.log('not enough messages, trying again with ', nextMsgCount);
+    msgCache.clear(); // apparently there's not enough in the cache?! clear it.
+    countL33ts(chat, msgCache, nextMsgCount);
+  }
 }
 
 
@@ -253,7 +299,12 @@ client.on('authenticated', () => {
 client.on('ready', () => {
   console.log('client is ready!');
   client.getChatById(GROUP_ID).then((chat) => {
-    countL33ts(chat);
+    setTimeout(() => {
+      const msgCache = new MsgCache(chat.id._serialized, 'cache');
+      msgCache.readFromDisk();
+
+      countL33ts(chat, msgCache);
+    }, 5000); // wait 5 seconds before starting counting to make sure everything is synced
   });
 });
 
@@ -270,4 +321,5 @@ client.on('disconnected', (reason) => {
 });
 
 
+console.log('L33T Bot started on ', new Date());
 client.initialize();
