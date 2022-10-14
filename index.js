@@ -106,28 +106,31 @@ function getMessageQuip(counter) {
     [120, `'er Strähne...wtf?`],
     [130, `'er Strähne...wenn wir mal so viel Talent in irgendwas anderem hätten`],
     [150, `'er Strähne...ich call hacks`],
+    [160, `'er Strähne...unnormal!`],
   ];
   
   const specialTexts = new Map([
-    [10, `'er Strähne...so viel wie 10 Jähriger!`],
-    [18, `'er Strähne...darauf erstmal nen Schnaps`],
-    [30, `'er Strähne...endlich 30!`],
-    [40, `'er Strähne! Fast so gut wie A von Stairs halten`],
-    [42, `'er Strähne...irgendwas irgendwas Antwort auf alles`],
-    [50, `'er Strähne...Mohrenkopfbrötchen? FUFFZISCH`],
-    [69, `'er Strähne...nice`],
-    [88, `'er Strähne...monkaS`],
-    [90, `'er Strähne...wenn das mal die ADR von JEDEM wäre...`],
-    [96, `'er Strähne...ecin`],
-    [100, `'er Strähne...average HP jedes Gegners nach einem Jordi-Execute™`],
-    [101, `'er Strähne...irgendwas irgendwas Dalmatiner`],
-    [103, `'er Strähne...alles Hurensöhne hier...damit habt ihr nicht gerechnet oder?`],
-    [110, `'er Strähne...Google behauptet ich bekomme ein Bewusstsein`],
+    [10, `so viel wie 10 Jähriger!`],
+    [18, `darauf erstmal nen Schnaps`],
+    [30, `endlich 30!`],
+    [40, `fast so gut wie A von Stairs halten`],
+    [42, `irgendwas irgendwas Antwort auf alles`],
+    [50, `Mohrenkopfbrötchen? FUFFZISCH`],
+    [69, `nice`],
+    [88, `monkaS`],
+    [90, `wenn das mal die ADR von JEDEM wäre...`],
+    [96, `ecin`],
+    [100, `average HP jedes Gegners nach einem Jordi-Execute™`],
+    [101, `irgendwas irgendwas Dalmatiner`],
+    [103, `alles Hurensöhne hier...damit habt ihr nicht gerechnet oder?`],
+    [110, `Google behauptet ich bekomme ein Bewusstsein`],
+    [154, `haben wir noch l33ts? Gar keine mehr? 154 noch?`],
+    [160, `dass ich das noch erleben darf!`],
   ]);
 
   let quip;
   if (specialTexts.has(counter)) {
-    quip = specialTexts.get(counter);
+    quip = `'er Strähne...${specialTexts.get(counter)}`;
   } else {
     quip = messageTexts
       .sort((l, r) => r[0] - l[0]) // sort descending, so it's easier to iterate
