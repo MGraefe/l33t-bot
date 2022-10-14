@@ -245,14 +245,14 @@ function examineMessages(chat, cacheMsgs) {
  * @param {MsgCache} msgCache
  * @param {number} maxMsgCount
  */
-async function countL33ts(chat, msgCache, maxMsgCount = 500) {
+async function countL33ts(chat, msgCache, maxMsgCount = 50) {
   if (maxMsgCount > (1000 * 100))
     throw Error("Exceeded maximum limit of requestable messages");
 
   // get messages from WhatsApp Web
   const messages = await chat.fetchMessages({limit: maxMsgCount});
   if (messages.length < maxMsgCount) {
-    throw new Error("Unable to get requested amount of messages");
+    throw new Error(`Requested ${maxMsgCount} messages but only received ${messages.length}, unable to complete`);
   }
 
   const cacheMsgs = msgCache.appendMessages(messages);
@@ -296,14 +296,36 @@ client.on('authenticated', () => {
 });
 
 
+function sleep(millis) {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve();
+    }, millis);
+  });
+}
+
+
 client.on('ready', () => {
   console.log('client is ready!');
   client.getChatById(GROUP_ID).then((chat) => {
-    setTimeout(() => {
+    setTimeout(async () => {
       const msgCache = new MsgCache(chat.id._serialized, 'cache');
       msgCache.readFromDisk();
 
-      countL33ts(chat, msgCache);
+      let numTries = 0;
+      while(true) {
+        try {
+          await countL33ts(chat, msgCache);
+          break;
+        } catch (err) {
+          console.error(err);
+          if (numTries < 10) {
+            console.log('Waiting 60 seconds and trying again...');
+            await sleep(60 * 1000);
+            ++numTries;
+          }
+        }
+      }
     }, 5000); // wait 5 seconds before starting counting to make sure everything is synced
   });
 });
