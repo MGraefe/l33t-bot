@@ -3,6 +3,7 @@ const MsgCache = require('./MsgCache.js');
 const qrcode = require('qrcode');
 const WAWebJS = require('whatsapp-web.js');
 const fs = require('fs');
+const seedrandom = require('seedrandom');
 
 const GROUP_ID = process.env.L33TBOT_GROUP_ID;
 const QR_FILENAME = process.env.L33TBOT_QR_FILENAME || 'qr.png';
@@ -34,9 +35,10 @@ class StreakCounter
     this.count = 0;
     this.ended = false;
     this.l33ted = false;
+    this.latestTimestamp = 0;
   }
 
-  countL33t() {
+  countL33t(timestamp = 0) {
     if (!this.l33ted) {
       if (!this.ended) {
         this.streak += 1;
@@ -170,7 +172,10 @@ async function reportResult(chat, globalCounter, personalCounters) {
   const sobs = personalCounters.filter(p => p.streak === 0);
   finalMsg += `\n------------------------------------------\nNicht-l33tender Hurensohn des Tages: `;
   if (sobs.length > 0) {
-    const sob = sobs[Math.floor(Math.random() * sobs.length)];
+    // Seed RNG for determining SOB using todays date
+    const today = new Date();
+    const rng = seedrandom(`${today.getFullYear()}.${today.getMonth()}.${today.getDate()}`);
+    const sob = sobs[Math.floor(rng() * sobs.length)];
     const sobName = await sob.resolveAuthorName();
     finalMsg += sobName;
   } else {
@@ -227,12 +232,12 @@ function examineMessages(chat, cacheMsgs) {
       msgTime.getMinutes() === 37 &&
       msg.body.match(/[1l]3{2,}[7t]/i)
     ) {
-      globalCounter.countL33t();
+      globalCounter.countL33t(msg.timestamp);
       // if author is undefined it's ourselves
       let {author = client.info.wid._serialized} = msg;
       let personal = personalCounters.get(author);
       if (personal) {
-        personal.countL33t();
+        personal.countL33t(msg.timestamp);
       } else {
         console.error('no personal counter for author', author);
       }
