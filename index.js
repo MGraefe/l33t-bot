@@ -308,28 +308,53 @@ function sleep(millis) {
 }
 
 
+/**
+ * Is it time to count the L33Ts for today?
+ */
+function isTimeToCount() {
+  const now = new Date();
+  return now.getHours() >= 13 && now.getMinutes() >= 38 && now.getSeconds() >= 5;
+}
+
+
+/**
+ * Client should be started a little early via cron, e.g. at 13:30.
+ * Then it's kept running until 13:38, which is when we analyze the messages.
+ * This is done to ensure that the messages are up-to-date, sometimes WA web is
+ * a bit sloppy with the updating.
+ */
+async function waitForCountTime() {
+  while (!process.env.L33T_DEBUG && !isTimeToCount()) {
+    await sleep(1000);
+  }
+}
+
+
 client.on('ready', () => {
   console.log('client is ready!');
-  client.getChatById(GROUP_ID).then((chat) => {
-    setTimeout(async () => {
-      const msgCache = new MsgCache(chat.id._serialized, 'cache');
-      msgCache.readFromDisk();
+  client.getChatById(GROUP_ID).then(async (chat) => {
+    await sleep(5000); // wait 5 seconds before starting counting to make sure everything is synced
+    await waitForCountTime();
 
-      let numTries = 0;
-      while(true) {
-        try {
-          await countL33ts(chat, msgCache);
-          break;
-        } catch (err) {
-          console.error(err);
-          if (numTries < 10) {
-            console.log('Waiting 60 seconds and trying again...');
-            await sleep(60 * 1000);
-            ++numTries;
-          }
+    console.log('Starting message analysis at ', new Date());
+
+    const msgCache = new MsgCache(chat.id._serialized, 'cache');
+    msgCache.readFromDisk();
+
+    let numTries = 0;
+    while(true) {
+      try {
+        await countL33ts(chat, msgCache);
+        break;
+      } catch (err) {
+        console.error(err);
+        if (numTries < 10) {
+          console.log('Waiting 60 seconds and trying again...');
+          await sleep(60 * 1000);
+          ++numTries;
         }
       }
-    }, 5000); // wait 5 seconds before starting counting to make sure everything is synced
+    }
   });
 });
 
