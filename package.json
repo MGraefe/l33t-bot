@@ -11,9 +11,9 @@
   "private": true,
   "dependencies": {
     "qrcode": "^1.5.1",
-    "whatsapp-web.js": "^1.17.1"
+    "whatsapp-web.js": "^1.18.3"
   },
   "devDependencies": {
-    "eslint": "^8.21.0"
+    "eslint": "^8.27.0"
   }
 }
