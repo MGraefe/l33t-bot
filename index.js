@@ -316,11 +316,11 @@ function sleep(millis) {
 
 
 /**
- * Is it time to count the L33Ts for today?
+ * Is it 13:38, so time to count the L33Ts for today?
  */
 function isTimeToCount() {
   const now = new Date();
-  return now.getHours() >= 13 && now.getMinutes() >= 38 && now.getSeconds() >= 5;
+  return (now.getHours() * 60 + now.getMinutes()) >= (13 * 60 + 38);
 }
 
 
@@ -340,8 +340,8 @@ async function waitForCountTime() {
 client.on('ready', () => {
   console.log('client is ready!');
   client.getChatById(GROUP_ID).then(async (chat) => {
-    await sleep(5000); // wait 5 seconds before starting counting to make sure everything is synced
     await waitForCountTime();
+    await sleep(5000); // wait 5 seconds before starting counting to make sure everything is synced
 
     console.log('Starting message analysis at ', new Date());
 
