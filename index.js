@@ -173,10 +173,11 @@ async function reportResult(chat, globalCounter, personalCounters) {
   const sobs = personalCounters.filter(p => p.streak === 0);
   finalMsg += `\n------------------------------------------\nNicht-l33tender Hurensohn des Tages: `;
   if (sobs.length > 0) {
-    // Seed RNG for determining SOB using todays date, ensuring SOB will always be the same between runs on the same day
-    console.log('Seed for SOB:', globalCounter.latestTimestamp);
-    const today = new Date(globalCounter.latestTimestamp);
-    const rng = seedrandom(`${today.getFullYear()}.${today.getMonth()}.${today.getDate()}`);
+    // Seed RNG for determining SOB using the first l33t message timestamp,
+    // ensuring SOB will always be the same between runs on the same day
+    const sobSeed = globalCounter.latestTimestamp || (new Date()).toLocaleDateString();
+    console.log('Seed for SOB:', sobSeed);
+    const rng = seedrandom(sobSeed);
     const sob = sobs[Math.floor(rng() * sobs.length)];
     const sobName = await sob.resolveAuthorName();
     finalMsg += sobName;
