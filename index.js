@@ -349,17 +349,16 @@ client.on('ready', () => {
     const msgCache = new MsgCache(chat.id._serialized, 'cache');
     msgCache.readFromDisk();
 
-    let numTries = 0;
-    while(true) {
+    const maxTries = 10;
+    for(let numTries = 0; numTries < maxTries; numTries += 1) {
       try {
         await countL33ts(chat, msgCache);
         break;
       } catch (err) {
         console.error(err);
-        if (numTries < 10) {
+        if (numTries + 1 < maxTries) {
           console.log('Waiting 60 seconds and trying again...');
           await sleep(60 * 1000);
-          ++numTries;
         }
       }
     }
