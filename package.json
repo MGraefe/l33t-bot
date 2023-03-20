@@ -12,7 +12,7 @@
   "dependencies": {
     "qrcode": "^1.5.1",
     "seedrandom": "^3.0.5",
-    "whatsapp-web.js": "^1.19.3"
+    "whatsapp-web.js": "^1.19.5"
   },
   "devDependencies": {
     "eslint": "^8.33.0"
