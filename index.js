@@ -206,7 +206,14 @@ async function reportResult(chat, globalCounter, personalCounters) {
  * @returns 
  */
 function examineMessages(chat, cacheMsgs) {
-  let day = new Date();
+  const now = new Date();
+  let day = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  // if checked after 13:37 take the next day for overroll checking
+  if (now.getHours() > 13 || now.getHours() == 13 && now.getMinutes() > 37) {
+    day += DAY_MS;
+  }
+  console.log('Rollover check date:', new Date(day));
+  
   const globalCounter = new StreakCounter();
   /** @type {Map<string, StreakCounter>} */
   const personalCounters = new Map(chat.participants.map(({id}) => [id._serialized, new StreakCounter(id._serialized)]));
