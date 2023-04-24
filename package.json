@@ -10,7 +10,7 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
-    "qrcode": "^1.5.1",
+    "qrcode": "^1.5.3",
     "seedrandom": "^3.0.5",
     "whatsapp-web.js": "^1.19.5"
   },
