@@ -110,6 +110,7 @@ function getMessageQuip(counter) {
     [130, `'er Strähne...wenn wir mal so viel Talent in irgendwas anderem hätten`],
     [150, `'er Strähne...ich call hacks`],
     [160, `'er Strähne...unnormal!`],
+    [365, `'er Strähne...immer noch unnormal!`],
   ];
   
   const specialTexts = new Map([
@@ -129,6 +130,7 @@ function getMessageQuip(counter) {
     [110, `Google behauptet ich bekomme ein Bewusstsein`],
     [154, `haben wir noch l33ts? Gar keine mehr? 154 noch?`],
     [160, `dass ich das noch erleben darf!`],
+    [365, `Jubiläum! 😃👍`],
   ]);
 
   let quip;
