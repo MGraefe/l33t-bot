@@ -155,6 +155,7 @@ async function reportResult(chat, globalCounter, personalCounters) {
   console.log('L33t count:', globalCounter.streak);
   const personalMsgs = await Promise.all(personalCounters
     .filter(p => p.isRelevant())
+    .sort((a, b) => b.count - a.count)
     .map(c => c.getMessage()));
   personalMsgs.sort((l, r) => l.localeCompare(r));
   let finalMsg = `*[L33T Bot]: ${getMessageQuip(globalCounter.streak)}*\n`
