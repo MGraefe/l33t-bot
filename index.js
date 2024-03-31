@@ -11,10 +11,16 @@ const QR_FILENAME = process.env.L33TBOT_QR_FILENAME || 'qr.png';
 
 const DAY_MS = 1000 * 60 * 60 * 24; // 1 day in milliseconds
 
+const wwebVersion = '2.2412.54';
+
 const client = new WAWebJS.Client({
   authStrategy: new WAWebJS.LocalAuth(),
   // puppeteer: {headless: false},
   // userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 12_3_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36',
+  webVersionCache: {
+    type: 'remote',
+    remotePath: `https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/${wwebVersion}.html`,
+  },
 });
 
 let shutdownTimer = null;
@@ -303,8 +309,12 @@ function isTimeToCount() {
  * a bit sloppy with the updating.
  */
 async function waitForCountTime() {
-  while (!process.env.L33T_DEBUG && !isTimeToCount()) {
-    await sleep(1000);
+  if (process.env.L33T_DEBUG) {
+    await sleep(30000);
+  } else {
+    while (!isTimeToCount()) {
+      await sleep(1000);
+    }
   }
 }
 
@@ -312,6 +322,7 @@ async function waitForCountTime() {
 client.on('ready', () => {
   console.log('client is ready!');
   client.getChatById(GROUP_ID).then(async (chat) => {
+    await sleep(30000); // mandatory wait for messages to sync
     await waitForCountTime();
     await sleep(5000); // wait 5 seconds before starting counting to make sure everything is synced
 
