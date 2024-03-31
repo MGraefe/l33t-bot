@@ -1,8 +1,8 @@
 // Message with the lowest count greater or equal than the streak counter is used
 const normal = [
   [0, "RIP STRÄHNE Sadge"],
-  [1, "alles fängt mal klein an"],
-  [5, "weiter so!"],
+  [1, "fick die hater, here we go again"],
+  [5, "weiter so, fuck'em haters"],
   [10, "nice!"],
   [15, "hype!"],
   [25, "MEGAHYPE!"],
